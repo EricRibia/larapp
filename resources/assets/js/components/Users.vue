@@ -2,7 +2,7 @@
 
         <div class="row mt-5">
           <div class="col-md-12">
-            <div class="card">
+            <div class="card" v-if="$gate.isAuthorOrAdmin()">
               <div class="card-header">
                 <h3 class="card-title">Users table</h3>
 
@@ -21,7 +21,7 @@
                     <th>Registered at</th>
                     <th>Modify</th>
                   </tr>
-                  <tr v-for=" user in users" :key="user.id">
+                  <tr v-for=" user in users.data" :key="user.id">
                     <td>{{user.id}}</td>
                     <td>{{user.name}}</td>
                     <td>{{user.email}}</td>
@@ -36,8 +36,16 @@
                 </tbody></table>
               </div>
               <!-- /.card-body -->
+              <div class="card-footer">
+                  <pagination :data="users" @pagination-change-page="getResults"></pagination>
+              </div>
             </div>
             <!-- /.card -->
+            <!-- .notfound -->
+             <div class="card" v-if="!$gate.isAuthorOrAdmin()">
+            <notfound></notfound>
+             </div>
+            <!-- /.notfound -->
           </div>
           <!-- Modal -->
             <div class="modal fade" id="addNew" tabindex="-1" role="dialog" aria-labelledby="addNewLabel" aria-hidden="true">
@@ -166,7 +174,10 @@
                 })
             },
             loadUsers(){
-                axios.get('api/user').then(( {data} ) => (this.users = data.data));
+                if(this.$gate.isAuthorOrAdmin())
+                {
+                    axios.get('api/user').then(( {data} ) => (this.users = data));
+                }
             },
             updateUser(){
                 this.$Progress.start();
@@ -183,7 +194,7 @@
                     this.$Progress.finish();
                 }).catch( () => {
                     //fail
-                    this.$Progress.start();
+                    this.$Progress.fail();
                 });
             },
             createUser(){
@@ -200,7 +211,13 @@
                 }).catch( () => {
 
                 });
-            }
+            },
+            getResults(page = 1) {
+			axios.get('api/user?page=' + page)
+				.then(response => {
+					this.users = response.data;
+				});
+		    }
         },
         created() {
             this.loadUsers();

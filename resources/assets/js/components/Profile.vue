@@ -9,7 +9,7 @@
                 <h5 class="widget-user-desc">Web Designer</h5>
               </div>
               <div class="widget-user-image">
-                <img class="img-circle" src="#" alt="User Avatar">
+                <img class="img-circle" :src="getProfPhoto()" alt="User Avatar">
               </div>
               <div class="card-footer">
                 <div class="row">
@@ -192,40 +192,50 @@
                         <!-- /.tab-pane -->
 
                         <div class="tab-pane active show" id="settings">
-                            <form class="form-horizontal">
+                            <form @submit.prevent="updateInfo" class="form-horizontal">
                             <div class="form-group">
                                 <label for="inputName" class="col-sm-2 control-label">Name</label>
 
                                 <div class="col-sm-10">
-                                <input type="email" class="form-control" id="inputName" placeholder="Name">
+                                <input v-model="form.name" type="text" class="form-control" 
+                                :class=" { 'is-invalid': form.errors.has('name')}"
+                                id="inputName" placeholder="Name">
+                                 <has-error :form="form" field="name"></has-error>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="inputEmail" class="col-sm-2 control-label">Email</label>
 
                                 <div class="col-sm-10">
-                                <input type="email" class="form-control" id="inputEmail" placeholder="Email">
+                                <input  v-model="form.email" type="email" class="form-control" 
+                                id="inputEmail" placeholder="Email"
+                                :class="{ 'is-invalid': form.errors.has('email')}">
+                                <has-error :form="form" field="email"></has-error>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="inputExperience" class="col-sm-2 control-label">Experience</label>
 
                                 <div class="col-sm-10">
-                                <textarea class="form-control" id="inputExperience" placeholder="Experience"></textarea>
+                                <textarea   v-model="form.bio" class="form-control" 
+                                id="inputExperience" placeholder="Experience"></textarea>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="inputSkills" class="col-sm-2 control-label">Profile Photo</label>
 
                                 <div class="col-sm-10">
-                                <input type="file" id="inputFile">
+                                <input type="file" @change="photoUpload" name="photo" class="form-input" id="inputFile">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="inputEmail" class="col-sm-6 control-label">Password (leave empty if not changing)</label>
+                                <label for="inputPassword" class="col-sm-6 control-label">Password (leave empty if not changing)</label>
 
                                 <div class="col-sm-10">
-                                <input type="password" class="form-control" id="inputPassword" placeholder="password">
+                                <input  v-model="form.password" type="password" 
+                                class="form-control" id="inputPassword" placeholder="password"
+                                :class="{ 'is-invalid': form.errors.has('password') }">
+                                <has-error :form="form" field="password"></has-error>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -249,8 +259,66 @@
 
 <script>
     export default {
+        data() {
+            return {
+                form : new Form({
+                    id:'',
+                    name: '',
+                    email: '',
+                    password: '',
+                    type: '',
+                    bio: '',
+                    photo: ''
+                })
+            }
+        },
+        methods: {
+            getProfPhoto(){
+                let photo = ( this.form.photo.length > 100 ) ? this.form.photo :'img/profiles/' + this.form.photo;
+                return photo;
+            },
+            updateInfo(){
+                this.$Progress.start();
+                if( this.form.password == ''){
+                    this.form.password = undefined;
+                }
+                this.form.put('api/profile')
+                .then( () => {
+                  toast({
+                    type: 'success',
+                    title: 'Info updated successfully!!'
+                    });
+                Fire.$emit('updateForm');
+                this.$Progress.finish();    
+                }).catch( () => {
+                this.$Progress.fail();
+                });
+            },
+            photoUpload(e){
+                let file = e.target.files[0];
+                let reader = new FileReader();
+                if( file['size'] < 262144){
+                    reader.onloadend = (file) => {
+                    // console.log('Result', reader.result);
+                    this.form.photo =reader.result;
+                    }
+                    reader.readAsDataURL(file);
+                }else{
+                    swal({
+                    type: 'error',
+                    title: 'Failed to upload',
+                    text: 'Image should be less than 2mbs',
+                    })
+                }
+            }
+        },
         mounted() {
             console.log('Component mounted.')
+        },
+        created() {
+            axios.get('api/profile')
+            .then( ({data}) => (this.form.fill(data)) );
+            Fire.$on('updateForm', ({data}) => (this.form.fill(data)) );
         }
     }
 </script>

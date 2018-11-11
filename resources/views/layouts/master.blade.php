@@ -62,6 +62,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         </div>
         <div class="info">
           <a href="#" class="d-block">{{Auth::user()->name}}</a>
+          <p href="#" class="d-block">{{Auth::user()->type}}</p>
         </div>
       </div>
 
@@ -78,6 +79,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   </p>
                 </router-link>
               </li>
+          @canany(['isAdmin', 'isAuthor'])
           <li class="nav-item has-treeview">
             <a href="#" class="nav-link">
               <i class="fas fa-cogs"></i>
@@ -93,14 +95,17 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   <p>Users</p>
                 </router-link>
               </li>
+             
               <li class="nav-item">
                 <router-link to="/developer" class="nav-link">
                   <i class="fas fa-circle"></i>
                   <p>Developer</p>
                 </router-link>
               </li>
+              
             </ul>
           </li>
+          @endcanany
           <li class="nav-item">
             <router-link to="/profile" class="nav-link">
               <i class="fas fa-user"></i>
@@ -155,7 +160,11 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <!-- ./wrapper -->
 
 <!-- REQUIRED SCRIPTS -->
-
+@auth
+  <script>
+      window.user = @json(auth()->user());
+  </script>  
+@endauth
 <script type="text/javascript" src="/js/app.js"></script>
 </body>
 </html>

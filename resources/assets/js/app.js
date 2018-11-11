@@ -11,6 +11,8 @@ import moment from 'moment';
 import { Form, HasError, AlertError } from 'vform';
 import VueProgressBar from 'vue-progressbar';
 import swal from 'sweetalert2';
+import Gate from './Gate';
+Vue.prototype.$gate = new Gate(window.user);
 
 window.swal = swal;
 const toast = swal.mixin({
@@ -49,8 +51,9 @@ const router = new VueRouter({
  * the page. Then, you may begin adding components to this application
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
-
+Vue.component('pagination', require('laravel-vue-pagination'));
 Vue.component('dashboard', require('./components/Dashboard.vue'));
+Vue.component('notfound', require('./components/NotFound.vue'));
 Vue.component(
     'passport-clients',
     require('./components/passport/Clients.vue')
